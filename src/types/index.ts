@@ -1,12 +1,12 @@
 // Интерфейсы API-клиента
 export interface IApiClient {
-    getProducts(): Promise<IProductList[]>;
-    getProduct(id: string): Promise<IProductList>;
+    getProducts(): Promise<IProduct[]>;
+    getProduct(id: string): Promise<IProduct>;
     createOrder(order: IOrder): Promise<IOrder>;
 }
   
 // Интерфейс для описания товара
-export interface IProductList {
+export interface IProduct {
     id: string;
     description: string;
     image: string;
@@ -23,7 +23,7 @@ export interface IBasketItem {
 
 // Интерфейс для формы заказа
 export interface IOrderForm {
-    items: IProductList[];
+    items: IProduct[];
     address: string;
     email: string;
     phone: string;
@@ -31,27 +31,27 @@ export interface IOrderForm {
   
 // Интерфейс для заказа
 export interface IOrder {
-    id: string;
-    items: TProductBasket[];
-    paymentMethod: string;
-    deliveryAddress: string;
-    email: string;
-    phone: string;
+    items: string[];
+    total: number; 
+    paymentMethod: string; 
+    deliveryAddress: string; 
+    email: string; 
+    phone: string; 
 }
   
 // Интерфейс для управления данными о товаре
 export interface IProductsData {
-    products: IProductList[];
+    products: IProduct[];
     preview: string | null;
-    setProducts(products: IProductList[]): void;
-    getProducts(): IProductList[];
-    getProduct(id: string): IProductList;
-    saveProduct(product: IProductList): void;
-    savePreview(products: IProductList[]): void;
+    setProducts(products: IProduct[]): void;
+    getProducts(): IProduct[];
+    getProduct(id: string): IProduct;
+    saveProduct(product: IProduct): void;
+    savePreview(products: IProduct[]): void;
 }
   
 // Типы данных для корзины
-export type TProductBasket = Pick<IProductList, 'id' | 'title' | 'price'>;
+export type TProductBasket = Pick<IProduct, 'id' | 'title' | 'price'>;
   
 // Типы оплаты
 export type TPaymentMethod = 'card' | 'cash';
