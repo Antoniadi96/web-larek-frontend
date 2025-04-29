@@ -110,6 +110,7 @@ export interface IBasketData {
 	clearBasket(): void;
 	sendBasketToOrder(orderData: IOrderData): void;
 }
+```
 
 ## Архитектура приложения
 
