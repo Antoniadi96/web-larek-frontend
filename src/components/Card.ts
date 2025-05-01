@@ -1,79 +1,63 @@
-import { ICardActions } from '../types';
-import { categories } from '../utils/constants';
-import { ensureElement } from '../utils/utils';
 import { Component } from './base/Component';
+import { IEvents, ICardActions, IProduct } from '../types';
+import { CDN_URL } from '../utils/constants';
 
-// Интерфейс для описания карточки товара
-export interface ICard {
-    id: string;
-    category: string;
-    title: string;
-    image: string;
-    price: number | null;
-    description: string;
-    selected: boolean;
-    buttonText: string;
-}
-
-// Абстрактный базовый класс для карточек
-export abstract class BaseCard extends Component<ICard> {
+export class Card extends Component<HTMLElement> {
     protected _title: HTMLElement;
-    protected _price: HTMLElement;
-    protected _button: HTMLButtonElement;
-
-    constructor(container: HTMLElement) {
-        super(container);
-        this._title = ensureElement<HTMLElement>(`.card__title`, container);
-        this._price = ensureElement<HTMLElement>(`.card__price`, container);
-        this._button = container.querySelector(`.card__button`);
-    }
-
-    set title(value: string) {
-        this.setText(this._title, value);
-    }
-
-    get title() {
-        return this._title.textContent || '';
-    }
-
-    set price(value: string | null) {
-        if (this._price) {
-            if (value == null) {
-                this.setDisabled(this._button, true);
-                this.setText(this._price, 'Бесценно');
-                this.setText(this._button, 'Нельзя купить');
-            } else {
-                this.setDisabled(this._button, false);
-                this.setText(this._price, `${value} синапсов`);
-            }
-        }
-    }
-
-    set buttonText(value: string) {
-        this._button.textContent = value;
-    }
-}
-
-// Класс для обычной карточки товара
-export class Card extends BaseCard {
-    protected _category: HTMLElement;
     protected _image: HTMLImageElement;
-    protected _description?: HTMLElement;
+    protected _category: HTMLElement;
+    protected _price: HTMLElement;
+    protected _button: HTMLButtonElement | null;
+    protected _container: HTMLElement;
 
-    constructor(container: HTMLElement, actions?: ICardActions) {
-        super(container);
+    constructor(
+        container: HTMLElement, 
+        events: IEvents,
+        actions?: ICardActions
+    ) {
+        super(container, events);
+        
+        this._container = container;
+        this._title = container.querySelector('.card__title') as HTMLElement;
+        this._image = container.querySelector('.card__image') as HTMLImageElement;
+        this._category = container.querySelector('.card__category') as HTMLElement;
+        this._price = container.querySelector('.card__price') as HTMLElement;
+        this._button = container.querySelector('.card__button');
 
-        this._category = container.querySelector(`.card__category`);
-        this._image = container.querySelector(`.card__image`);
-        this._description = container.querySelector(`.card__text`);
-
+        // Основной обработчик клика по карточке
         if (actions?.onClick) {
-            if (this._button) {
-                this._button.addEventListener('click', actions.onClick);
-            } else {
-                container.addEventListener('click', actions.onClick);
-            }
+            container.addEventListener('click', (e) => {
+                // Проверяем, что клик не по кнопке (если она есть)
+                const isButtonClick = this._button && 
+                    (e.target === this._button || 
+                     this._button.contains(e.target as Node));
+                
+                if (!isButtonClick) {
+                    e.preventDefault();
+                    actions.onClick(e);
+                }
+            });
         }
+
+        // Отдельный обработчик для кнопки (если она есть)
+        if (this._button && actions?.onClick) {
+            this._button.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                actions.onClick(e);
+            });
+        }
+    }
+
+    
+
+    render(data: IProduct): HTMLElement {
+        this.id = data.id;
+        this.title = data.title;
+        this.image = data.image;
+        this.category = data.category;
+        this.price = data.price;
+        return this.container;
     }
 
     set id(value: string) {
@@ -84,47 +68,51 @@ export class Card extends BaseCard {
         return this.container.dataset.id || '';
     }
 
+    set title(value: string) {
+        this.setText(this._title, value);
+    }
+
     set image(value: string) {
-        this.setImage(this._image, value, this.title);
-    }
-
-    set description(value: string) {
-        this.setText(this._description, value);
-    }
-
-    get description() {
-        return this._description.textContent || '';
-    }
-
-    set category(value: string) {
-        this.setText(this._category, value);
-        this.toggleClass(this._category, categories.get(value), true);
-    }
-
-    get category() {
-        return this._category.textContent || '';
-    }
-}
-
-// Класс для карточки в корзине
-export class BasketCard extends BaseCard {
-    protected _index: HTMLElement;
-    protected _deleteButton: HTMLElement;
-
-    constructor(container: HTMLElement, actions?: ICardActions) {
-        super(container);
-        this._index = ensureElement<HTMLElement>(`.basket__item-index`, container);
-        this._deleteButton = ensureElement<HTMLButtonElement>(
-            `.basket__item-delete`,
-            container
-        );
-
-        if (actions && actions.onClick) {
-            this._deleteButton.addEventListener('click', actions.onClick);
+        try {
+            const fullPath = value 
+                ? value.startsWith('http') 
+                    ? value 
+                    : `${CDN_URL}/${value.replace(/^\/+/, '')}`
+                : `${CDN_URL}/placeholder.svg`;
+            
+            this._image.src = fullPath;
+            this._image.alt = this._title.textContent || 'Изображение товара';
+        } catch (error) {
+            console.error('Error loading image:', error);
+            this._image.src = `${CDN_URL}/placeholder.svg`;
+            this._image.alt = 'Изображение недоступно';
         }
     }
 
-    set index(value: number) {
-        this.setText(this._index, value);
+        set category(value: string) {
+        this.setText(this._category, value);
+        // Добавляем класс категории для стилизации
+        const categoryClass = this.getCategoryClass(value);
+        this._category.className = `card__category card__category_${categoryClass}`;
+    }
+
+    private getCategoryClass(category: string): string {
+        // Приводим категорию к нижнему регистру и заменяем пробелы на дефисы
+        return category.toLowerCase().replace(/\s+/g, '-');
+    }
+    
+    set price(value: number | null) {
+        if (value === null) {
+            this.setText(this._price, 'Бесценно');
+            if (this._button) this.setDisabled(this._button, true);
+        } else {
+            this.setText(this._price, `${value} синапсов`);
+            if (this._button) this.setDisabled(this._button, false);
+        }
+    }
+
+    // Добавляем метод для управления состоянием карточки
+    set selected(value: boolean) {
+        this.toggleClass(this._container, 'card_selected', value);
     }
 }

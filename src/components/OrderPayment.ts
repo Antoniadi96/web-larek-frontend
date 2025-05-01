@@ -1,60 +1,55 @@
-import { TOrderPayment } from '../types';
-import { IEvents } from './base/events';
-import { Form } from './Form';
+import { Component } from './base/Component';
+import { IEvents } from '../types';
 
-// Класс для работы с формой оплаты заказа
-export class OrderPayment extends Form<TOrderPayment> {
-    protected _buttonOnline: HTMLButtonElement;
+export class OrderPayment extends Component<HTMLElement> {
+    protected _buttonCard: HTMLButtonElement;
     protected _buttonCash: HTMLButtonElement;
     protected _address: HTMLInputElement;
+    protected _errors: HTMLElement;
+    protected _submitButton: HTMLButtonElement;
 
-    // Конструктор принимает контейнер формы и систему событий
-    constructor(container: HTMLFormElement, protected events: IEvents) {
+    constructor(container: HTMLElement, events: IEvents) {
         super(container, events);
 
-        // Инициализация элементов формы
-        this._address = container.querySelector(
-            'input[name="address"]'
-        ) as HTMLInputElement;
-        this._buttonCash = container.querySelector(
-            'button[name="cash"]'
-        ) as HTMLButtonElement;
-        this._buttonOnline = container.querySelector(
-            'button[name="card"]'
-        ) as HTMLButtonElement;
+        this._buttonCard = container.querySelector('[name="card"]') as HTMLButtonElement;
+        this._buttonCash = container.querySelector('[name="cash"]') as HTMLButtonElement;
+        this._address = container.querySelector('[name="address"]') as HTMLInputElement;
+        this._errors = container.querySelector('.form__errors') as HTMLElement;
+        this._submitButton = container.querySelector('.order__button') as HTMLButtonElement;
 
-         // Подписка на события кликов по кнопкам
-        if (this._buttonOnline) {
-            this._buttonOnline.addEventListener('click', () => {
-                events.emit('order:change', {
-                    Payment: this._buttonOnline.name,
-                    button: this._buttonOnline,
-                });
-            });
-        }
+        this._buttonCard.addEventListener('click', () => {
+            this.togglePayment('card');
+            events.emit('order.payment:change', { payment: 'card' });
+        });
 
-        if (this._buttonCash) {
-            this._buttonCash.addEventListener('click', () => {
-                events.emit('order:change', {
-                    Payment: this._buttonCash.name,
-                    button: this._buttonCash,
-                });
-            });
-        }
+        this._buttonCash.addEventListener('click', () => {
+            this.togglePayment('cash');
+            events.emit('order.payment:change', { payment: 'cash' });
+        });
+
+        this._address.addEventListener('input', () => {
+            events.emit('order.address:change', { address: this._address.value });
+        });
+
+        this._submitButton.addEventListener('click', () => {
+            events.emit('order:submit');
+        });
     }
+
+    togglePayment(method: 'card' | 'cash'): void {
+        this.toggleClass(this._buttonCard, 'button_alt-active', method === 'card');
+        this.toggleClass(this._buttonCash, 'button_alt-active', method === 'cash');
+    }
+
     set address(value: string) {
-        this._address.value = value;
+        this.setValue(this._address, value);
     }
 
-    // Метод переключения способа оплаты
-    togglePayment(value: HTMLElement) {
-        this.resetPayment();
-        this.toggleClass(value, 'button_alt-active', true);
+    set errors(value: string) {
+        this.setText(this._errors, value);
     }
 
-    // Метод сброса выбора способа оплаты
-    resetPayment() {
-        this.toggleClass(this._buttonCash, 'button_alt-active', false);
-        this.toggleClass(this._buttonOnline, 'button_alt-active', false);
+    set valid(value: boolean) {
+        this.setDisabled(this._submitButton, !value);
     }
 }

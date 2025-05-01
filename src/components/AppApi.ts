@@ -1,47 +1,21 @@
-import { IOrder, IProduct } from '../types/index';
-import { IApi } from '../types';
-import { ApiListResponse } from './base/api';
+import { ApiListResponse, Api } from './base/api';
+import { IApiClient, IProduct, IOrder } from '../types/index';
 
-// Основной класс API приложения
-export class AppApi {
-    private _baseApi: IApi;
-    private cdn: string;
-
-    // Конструктор инициализирует зависимости
-    constructor(cdn: string, baseApi: IApi) {
-        this._baseApi = baseApi;
-        this.cdn = cdn;
+export class AppApi extends Api implements IApiClient {
+    constructor(baseUrl: string, options?: RequestInit) {
+        super(baseUrl, options);
     }
 
-    // Получение списка всех продуктов
-    // Добавляет полный URL к изображениям
-    getProducts(): Promise<IProduct[]> {
-        return this._baseApi
-            .get<ApiListResponse<IProduct>>(`/product`)
-            .then((response) =>
-                response.items.map((product) => ({
-                    ...product,
-                    image: this.cdn + product.image,
-                }))
-            );
+    async getProducts(): Promise<IProduct[]> {
+        const response = await this.get('/product') as ApiListResponse<IProduct>;
+        return response.items;
     }
 
-    // Получение одного продукта по ID
-    // Добавляет полный URL к изображению
-    getProduct(id: string): Promise<IProduct> {
-        return this._baseApi
-            .get<IProduct>(`/product/${id}`)
-            .then((product) => ({
-                ...product,
-                image: this.cdn + product.image,
-            }));
+    async getProduct(id: string): Promise<IProduct> {
+        return await this.get(`/product/${id}`) as IProduct;
     }
 
-    // Создание нового заказа
-    // Отправляет данные заказа на сервер
-    orderProducts(order: IOrder): Promise<IOrder> {
-        return this._baseApi
-            .post<IOrder>('/order', order)
-            .then((data: IOrder) => data);
+    async createOrder(order: IOrder): Promise<IOrder> {
+        return await this.post('/order', order) as IOrder;
     }
 }

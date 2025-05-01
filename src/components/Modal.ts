@@ -1,69 +1,51 @@
-import { ensureElement } from '../utils/utils';
 import { Component } from './base/Component';
-import { IEvents } from './base/events';
+import { IEvents } from '../types';
+import { ensureElement } from '../utils/utils';
 
-// Интерфейс данных для модального окна
-interface IModalData {
-    content: HTMLElement;
-}
-
-// Класс для реализации модального окна
-export class Modal extends Component<IModalData> {
+export class Modal extends Component<HTMLElement> {
     protected _closeButton: HTMLButtonElement;
     protected _content: HTMLElement;
+    private _escapeHandler: (e: KeyboardEvent) => void;
 
-    // Конструктор принимает контейнер и систему событий
     constructor(container: HTMLElement, protected events: IEvents) {
-        super(container);
-
-        // Инициализация элементов модального окна
-        this._closeButton = ensureElement<HTMLButtonElement>(
-            '.modal__close',
-            container
-        );
-
-        // Подписка на события
+        super(container, events);
+        
+        this._closeButton = ensureElement<HTMLButtonElement>('.modal__close', container);
         this._content = ensureElement<HTMLElement>('.modal__content', container);
+        this._escapeHandler = (e: KeyboardEvent) => this.handleEscape(e);
+
         this._closeButton.addEventListener('click', this.close.bind(this));
-        this.container.addEventListener('click', this.close.bind(this));
-        this._content.addEventListener('click', (event) => event.stopPropagation());
-        this.handleEscUp = this.handleEscUp.bind(this);
+        this.container.addEventListener('click', (e) => this.handleOutsideClick(e));
     }
 
-    set content(value: HTMLElement | null) {
-        if (value === null) {
-            this._content.innerHTML = '';
-        } else {
-            this._content.replaceChildren(value);
-        }
-    }
-
-    // Метод открытия модального окна
-    open() {
+    open(): void {
+        document.body.style.overflow = 'hidden';
         this.container.classList.add('modal_active');
-        document.addEventListener('keyup', this.handleEscUp);
+        document.addEventListener('keydown', this._escapeHandler);
         this.events.emit('modal:open');
     }
-
-    // Метод закрытия модального окна
-    close() {
+    
+    close(): void {
+        document.body.style.overflow = '';
         this.container.classList.remove('modal_active');
-        document.removeEventListener('keyup', this.handleEscUp);
-        this.content = null;
+        document.removeEventListener('keydown', this._escapeHandler);
         this.events.emit('modal:close');
     }
 
-    // Обработчик нажатия клавиши Esc
-    handleEscUp(event: KeyboardEvent) {
+    set content(value: HTMLElement) {
+        this._content.replaceChildren(value);
+    }
+
+    private handleEscape(event: KeyboardEvent): void {
         if (event.key === 'Escape') {
+            event.preventDefault();
             this.close();
         }
     }
 
-    // Метод рендеринга модального окна
-    render(data: IModalData): HTMLElement {
-        super.render(data);
-        this.open();
-        return this.container;
+    private handleOutsideClick(event: MouseEvent): void {
+        if (event.target === this.container) {
+            this.close();
+        }
     }
 }

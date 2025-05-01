@@ -1,53 +1,41 @@
-import { IEvents } from './events';
+import { IEvents } from "../../types";
 
-// Абстрактный базовый класс для компонентов
-export abstract class Component<T> {
-    protected constructor(protected readonly container: HTMLElement) {
+export abstract class Component<T extends HTMLElement> {
+    public container: T;
+    protected events: IEvents;
+
+    constructor(container: T, events: IEvents) {
+        this.container = container;
+        this.events = events;
     }
 
-    // Метод для переключения класса элемента
-    toggleClass(element: HTMLElement, className: string, force?: boolean) {
-        element.classList.toggle(className, force);
+    protected setText(element: HTMLElement, value: unknown): void {
+        if (element) element.textContent = String(value);
     }
 
-    // Защищенный метод для установки текста элемента
-    protected setText(element: HTMLElement, value: unknown) {
+    protected setImage(element: HTMLImageElement, src: string, alt?: string): void {
         if (element) {
-            element.textContent = String(value);
+            element.src = src;
+            if (alt) element.alt = alt;
         }
     }
 
-    // Метод для установки состояния disabled у элемента
-    setDisabled(element: HTMLElement, state: boolean) {
+    protected setDisabled(element: HTMLElement, state: boolean): void {
         if (element) {
             if (state) element.setAttribute('disabled', 'disabled');
             else element.removeAttribute('disabled');
         }
     }
 
-    // Защищенный метод для скрытия элемента
-    protected setHidden(element: HTMLElement) {
-        element.style.display = 'none';
+    protected toggleClass(element: HTMLElement, className: string, force?: boolean): void {
+        if (element) element.classList.toggle(className, force);
     }
 
-    // Защищенный метод для показа элемента
-    protected setVisible(element: HTMLElement) {
-        element.style.removeProperty('display');
+    protected setVisible(element: HTMLElement, visible: boolean): void {
+        if (element) element.style.display = visible ? '' : 'none';
     }
 
-    // Защищенный метод для установки атрибутов изображения
-    protected setImage(element: HTMLImageElement, src: string, alt?: string) {
-        if (element) {
-            element.src = src;
-            if (alt) {
-                element.alt = alt;
-            }
-        }
-    }
-
-    // Метод рендеринга компонента с возможностью передачи данных
-    render(data?: Partial<T>): HTMLElement {
-        Object.assign(this as object, data ?? {});
-        return this.container;
+    protected setValue(element: HTMLInputElement, value: unknown): void {
+        if (element) element.value = String(value);
     }
 }

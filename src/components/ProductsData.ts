@@ -1,47 +1,43 @@
-import { IProduct, IProductsData, TFormErrors } from '../types';
-import { IEvents } from './base/events';
+import { IProductsData, IProduct, IEvents } from '../types';
 
-// Класс для работы с данными о продуктах
 export class ProductsData implements IProductsData {
-    _products: IProduct[];
-    _preview: string | null;
+    protected _products: IProduct[] = [];
+    protected _preview: string | null = null;
+    protected events: IEvents;
 
-    // Конструктор принимает систему событий
-    constructor(protected events: IEvents) {
+    constructor(events: IEvents) {
         this.events = events;
     }
+    products: IProduct[];
+    preview: string;
 
-    get products(): IProduct[] {
-        return this._products;
-    }
-
-    // Метод для установки списка продуктов
-    setProducts(products: IProduct[]) {
+    setProducts(products: IProduct[]): void {
         this._products = products;
-        this.events.emit('card:change');
+        this.events.emit('products:changed', this._products);
     }
 
     getProducts(): IProduct[] {
         return this._products;
     }
 
-    // Метод для добавления нового продукта в начало списка
-    addProduct(product: IProduct) {
-        this._products = [product, ...this._products];
+    getProduct(id: string): IProduct {
+        const product = this._products.find(item => item.id === id);
+        if (!product) throw new Error('Product not found');
+        return product;
     }
 
-    // Метод для получения продукта по ID
-    getProduct(id: string) {
-        return this.products.find((product) => product.id === id) || null;
+    saveProduct(product: IProduct): void {
+        const index = this._products.findIndex(item => item.id === product.id);
+        if (index !== -1) {
+            this._products[index] = product;
+        } else {
+            this._products.push(product);
+        }
+        this.events.emit('products:changed', this._products);
     }
 
-    // Метод для сохранения ID продукта в превью
-    savePreview(product: IProduct): void {
-        this._preview = product.id;
-        this.events.emit('preview:change', product);
-    }
-
-    get preview(): string | null {
-        return this._preview;
+    savePreview(id: string | null): void {
+        this._preview = id;
+        this.events.emit('preview:changed', { id });
     }
 }

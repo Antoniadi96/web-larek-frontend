@@ -69,3 +69,26 @@
     }
   }
 }
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: none;
+  z-index: 1000;
+  overflow-y: auto;
+}
+
+.modal_active {
+  display: block;
+}
+
+.modal__container {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+

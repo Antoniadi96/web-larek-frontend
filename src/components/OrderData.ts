@@ -1,85 +1,64 @@
-import { IOrder, IOrderData, TPaymentMethod } from '../types';
-import { TFormErrors, TOrderInput } from '../types/index';
-import { IEvents } from './base/events';
+import { IOrder, IOrderForm, FormErrors, IEvents, IProductBasket } from '../types';
 
-// Класс для работы с данными заказа
-export class OrderData implements IOrderData {
-    protected _formErrors: TFormErrors;
-    protected _order: IOrder = {
-        total: 0,
-        items: [],
-        email: '',
-        phone: '',
-        address: '',
-        payment: '',
-    };
+export class OrderData {
+    protected _order: Partial<IOrderForm> = {};
+    protected _errors: FormErrors = {};
+    protected events: IEvents;
 
-    // Конструктор принимает систему событий
-    constructor(protected events: IEvents) {
+    constructor(events: IEvents) {
         this.events = events;
     }
 
-    get formErrors(): TFormErrors {
-        return this._formErrors;
-    }
-
-    get order(): IOrder {
-        return this._order;
-    }
-
-    // Установка способа оплаты
-    setOrderPayment(value: TPaymentMethod) {
-        this._order.payment = value;
-    }
-
-    // Установка email
-    setOrderEmail(value: string) {
-        this._order.email = value;
-    }
-
-    // Установка адреса
-    setOrderAddress(value: string) {
-        this._order.address = value;
-    }
-    
-    // Установка поля заказа
-    setOrderField(field: keyof TOrderInput, value: string) {
+    setOrderField<T extends keyof IOrderForm>(field: T, value: IOrderForm[T]): void {
         this._order[field] = value;
         this.validateOrder();
+        this.events.emit('order:changed', this._order);
     }
 
-    // Валидация данных заказа
-    validateOrder() {
-        const errors: typeof this._formErrors = {};
-
-        if (!this._order.payment) {
-            errors.payment = 'Укажите способ оплаты';
+    validateOrder(): boolean {
+        this._errors = {};
+    
+        if (!('payment' in this._order) || !this._order.payment) {
+            this._errors.payment = 'Необходимо выбрать способ оплаты';
         }
-        if (!this._order.email) {
-            errors.email = 'Укажите ваш e-mail';
+        if (!('address' in this._order) || !this._order.address) {
+            this._errors.address = 'Необходимо указать адрес';
         }
-        if (!this._order.address) {
-            errors.address = 'Укажите адрес доставки';
+        if (!('email' in this._order) || !this._order.email) {
+            this._errors.email = 'Необходимо указать email';
+        } else if (!this._order.email.includes('@')) {
+            this._errors.email = 'Некорректный email';
         }
-        if (!this._order.phone) {
-            errors.phone = 'Укажите номер телефона';
+        if (!('phone' in this._order) || !this._order.phone) {
+            this._errors.phone = 'Необходимо указать телефон';
         }
-
-        this._formErrors = errors;
-        this.events.emit('errors:change', this._formErrors);
-
-        return Object.keys(errors).length === 0;
+    
+        this.events.emit('order:validation', this._errors);
+        return Object.keys(this._errors).length === 0;
     }
 
-    // Очистка данных заказа
-    clearOrder() {
-        this._order = {
-            total: 0,
-            items: [],
-            email: '',
-            phone: '',
-            address: '',
-            payment: '',
+    createOrder(items: IProductBasket[], total: number): IOrder {
+        // Проверка через ключи
+        const requiredFields: (keyof IOrderForm)[] = ['payment', 'address', 'email', 'phone'];
+        const missingFields = requiredFields.filter(field => !this._order[field]);
+    
+        if (missingFields.length > 0) {
+            throw new Error(`Не заполнены поля: ${missingFields.join(', ')}`);
+        }
+    
+        return {
+            ...this._order as Required<IOrderForm>,
+            items,
+            total
         };
+    }
+
+    get errors(): FormErrors {
+        return this._errors;
+    }
+
+    clearOrder(): void {
+        this._order = {};
+        this._errors = {};
     }
 }

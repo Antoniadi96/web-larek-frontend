@@ -4,7 +4,7 @@ export interface IApiClient {
     getProduct(id: string): Promise<IProduct>;
     createOrder(order: IOrder): Promise<IOrder>;
 }
-
+  
 // Интерфейс для описания товара
 export interface IProduct {
     id: string;
@@ -14,12 +14,7 @@ export interface IProduct {
     category: string;
     price: number | null;
 }
-
-// Интерфейс для описания товара в корзине
-export interface IBasketItem {
-    total: number | null;
-    items: TProductBasket[];
-}
+  
 
 // Интерфейс для формы заказа
 export interface IOrderForm {
@@ -27,18 +22,19 @@ export interface IOrderForm {
     address: string;
     email: string;
     phone: string;
+    payment: 'card' | 'cash';
 }
-
+  
 // Интерфейс для заказа
 export interface IOrder {
-    items: string[];
-    total: number;
-    payment: string;
-    address: string;
-    email: string;
-    phone: string;
+    items: IProductBasket[];
+    total: number; 
+    payment: string; 
+    address: string; 
+    email: string; 
+    phone: string; 
 }
-
+  
 // Интерфейс для управления данными о товаре
 export interface IProductsData {
     products: IProduct[];
@@ -46,72 +42,50 @@ export interface IProductsData {
     setProducts(products: IProduct[]): void;
     getProducts(): IProduct[];
     getProduct(id: string): IProduct;
-    savePreview(product: IProduct): void;
+    saveProduct(product: IProduct): void;
+    savePreview(id: string | null): void;
 }
 
-// Базовый API интерфейс
-export interface IApi {
-    baseUrl: string;
-    get<T>(uri: string): Promise<T>;
-    post<T>(uri: string, data: any, method?: ApiPostMethods): Promise<T>;
+export type EventName = string | RegExp;
+
+export interface IEvents {
+    on<T extends object>(event: EventName, callback: (data: T) => void): void;
+    off(event: EventName, callback: Function): void;
+    emit<T extends object>(event: string, data?: T): void;
+    trigger<T extends object>(event: string, context?: Partial<T>): (data: T) => void;
 }
 
-// Интерфейс для данных заказа
-export interface IOrderData {
-    formErrors: TFormErrors;
-    order: IOrder;
-    setOrderPayment(value: string): void;
-    setOrderEmail(value: string): void;
-    setOrderField(field: keyof TOrderInput, value: string): void;
-    setOrderField(field: keyof IOrder, value: IOrder[keyof IOrder]): void;
-    validateOrder(): boolean;
-    clearOrder(): void;
+export interface IProductBasket {
+    id: string;
+    title: string;
+    price: number | null;
+    quantity: number;
 }
 
-// Интерфейс для данных корзины
-export interface IBasketData {
-    products: TProductBasket[];
-    appendToBasket(product: IProduct): void;
-    removeFromBasket(product: IProduct): void;
-    getButtonStatus(product: TProductBasket): string;
-    getBasketPrice(): number;
-    getBasketQuantity(): number;
-    clearBasket(): void;
-    sendBasketToOrder(orderData: IOrderData): void;
-}
-
-// Интерфейс для обработки действий с карточками товаров
 export interface ICardActions {
     onClick: (event: MouseEvent) => void;
 }
 
-// Интерфейс для валидации форм
-export interface IFormValidator {
-    valid: boolean;
-    errors: string[];
-}
-
-// Интерфейс для обработки действий после успешного выполнения
-export interface ISuccessActions {
-    onClick: () => void;
-}
-
 // Типы данных для корзины
 export type TProductBasket = Pick<IProduct, 'id' | 'title' | 'price'>;
-
+  
 // Типы оплаты
 export type TPaymentMethod = 'card' | 'cash';
-
+  
 // Типы запросов
 export type ApiPostMethods = 'POST' | 'PUT' | 'DELETE';
+ 
+export type FormErrors = {
+    payment?: string;
+    address?: string;
+    email?: string;
+    phone?: string;
+};
 
-// Тип для ошибок формы
-export type TFormErrors = Partial<Record<keyof IOrder, string>>;
-
-// Типы для заказа
-export type TOrderPayment = Pick<IOrder, 'payment' | 'address'>;
-export type TOrderInput = Pick<
-    IOrder,
-    'payment' | 'address' | 'email' | 'phone'
->;
-export type TOrderContact = Pick<IOrder, 'email' | 'phone'>;
+// Базовый API интерфейс
+export interface IApi {
+    baseUrl: string;
+    get(uri: string): Promise<object>;
+    post(uri: string, data: object, method?: ApiPostMethods): Promise<object>;
+}
+  
