@@ -11,12 +11,10 @@ export class BasketCard extends Component<HTMLElement> {
     constructor(container: HTMLElement, events: IEvents) {
         super(container, events);
 
-        // Проверяем сам контейнер
         if (!container) {
             throw new Error('Container is null or undefined');
         }
 
-        // Безопасное получение элементов с проверкой
         try {
             this._title = ensureElement<HTMLElement>('.card__title', container);
             this._price = ensureElement<HTMLElement>('.card__price', container);

@@ -6,19 +6,24 @@ export class Basket extends Component<HTMLElement> {
     protected _list: HTMLElement;
     protected _total: HTMLElement;
     protected _button: HTMLButtonElement;
-    protected _counter: HTMLElement; // Добавляем элемент счетчика
+    protected _counter: HTMLElement; 
 
     constructor(container: HTMLElement, events: IEvents) {
         super(container, events);
-
+    
         this._list = ensureElement<HTMLElement>('.basket__list', container);
         this._total = ensureElement<HTMLElement>('.basket__price', container);
-        this._button = ensureElement<HTMLButtonElement>('.basket__button', container);
-        this._counter = ensureElement<HTMLElement>('.header__basket-counter'); // Находим элемент счетчика
-
-        this._button.addEventListener('click', () => {
-            events.emit('order:open');
-        });
+        this._button = container.querySelector('.basket__button') as HTMLButtonElement;
+        this._counter = ensureElement<HTMLElement>('.header__basket-counter');
+    
+        if (this._button) {
+            this._button.addEventListener('click', () => {
+                if (this._button.disabled) return;
+                events.emit('order:open');
+            });
+        } else {
+            console.warn('⚠ basket__button не найдена при инициализации Basket');
+        }
     }
 
     set items(items: HTMLElement[]) {
@@ -29,7 +34,6 @@ export class Basket extends Component<HTMLElement> {
         this.setText(this._total, `${value} синапсов`);
     }
 
-    // Добавляем setter для counter
     set counter(value: number) {
         this.setText(this._counter, value.toString());
     }
@@ -37,4 +41,9 @@ export class Basket extends Component<HTMLElement> {
     set buttonDisabled(state: boolean) {
         this.setDisabled(this._button, state);
     }
+
+    setElements() {
+        this._button = ensureElement<HTMLButtonElement>('.basket__button', this.container);
+    }
 }
+

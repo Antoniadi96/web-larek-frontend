@@ -27,7 +27,7 @@ export interface IOrderForm {
   
 // Интерфейс для заказа
 export interface IOrder {
-    items: IProductBasket[];
+    items: string[];
     total: number; 
     payment: string; 
     address: string; 
@@ -48,6 +48,7 @@ export interface IProductsData {
 
 export type EventName = string | RegExp;
 
+// Интерфейс для системы событий
 export interface IEvents {
     on<T extends object>(event: EventName, callback: (data: T) => void): void;
     off(event: EventName, callback: Function): void;
@@ -55,6 +56,7 @@ export interface IEvents {
     trigger<T extends object>(event: string, context?: Partial<T>): (data: T) => void;
 }
 
+// Интерфейс товара в корзине
 export interface IProductBasket {
     id: string;
     title: string;
@@ -74,7 +76,8 @@ export type TPaymentMethod = 'card' | 'cash';
   
 // Типы запросов
 export type ApiPostMethods = 'POST' | 'PUT' | 'DELETE';
- 
+
+// Ошибки формы, связанные с заполнением полей
 export type FormErrors = {
     payment?: string;
     address?: string;

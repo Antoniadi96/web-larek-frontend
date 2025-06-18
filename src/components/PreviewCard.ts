@@ -1,6 +1,6 @@
 import { Component } from './base/Component';
 import { IProduct, IEvents } from '../types';
-import { CDN_URL } from '../utils/constants';
+import { CDN_URL, categoryClass } from '../utils/constants';
 
 export class PreviewCard extends Component<HTMLElement> {
     protected _title: HTMLElement;
@@ -57,7 +57,7 @@ export class PreviewCard extends Component<HTMLElement> {
         this.setSafeImage(this._image, data.image, data.title);
         this.setText(this._description, data.description);
         this.setText(this._category, data.category);
-        this._category.className = `card__category card__category_${data.category}`;
+        this._category.className = `card__category ${categoryClass.get(data.category) ?? ''}`;
         
         if (data.price === null) {
             this.setText(this._price, 'Бесценно');

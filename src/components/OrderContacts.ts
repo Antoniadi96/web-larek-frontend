@@ -23,7 +23,8 @@ export class OrderContacts extends Component<HTMLElement> {
             events.emit('order.phone:change', { phone: this._phone.value });
         });
 
-        this._submitButton.addEventListener('click', () => {
+        this._submitButton.addEventListener('click', (event) => {
+            event.preventDefault(); 
             events.emit('contacts:submit');
         });
     }

@@ -1,6 +1,6 @@
 import { Component } from './base/Component';
 import { IEvents, ICardActions, IProduct } from '../types';
-import { CDN_URL } from '../utils/constants';
+import { CDN_URL, categoryClass } from '../utils/constants';
 
 export class Card extends Component<HTMLElement> {
     protected _title: HTMLElement;
@@ -24,10 +24,8 @@ export class Card extends Component<HTMLElement> {
         this._price = container.querySelector('.card__price') as HTMLElement;
         this._button = container.querySelector('.card__button');
 
-        // Основной обработчик клика по карточке
         if (actions?.onClick) {
             container.addEventListener('click', (e) => {
-                // Проверяем, что клик не по кнопке (если она есть)
                 const isButtonClick = this._button && 
                     (e.target === this._button || 
                      this._button.contains(e.target as Node));
@@ -39,7 +37,6 @@ export class Card extends Component<HTMLElement> {
             });
         }
 
-        // Отдельный обработчик для кнопки (если она есть)
         if (this._button && actions?.onClick) {
             this._button.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -48,8 +45,6 @@ export class Card extends Component<HTMLElement> {
             });
         }
     }
-
-    
 
     render(data: IProduct): HTMLElement {
         this.id = data.id;
@@ -89,16 +84,14 @@ export class Card extends Component<HTMLElement> {
         }
     }
 
-        set category(value: string) {
+    set category(value: string) {
         this.setText(this._category, value);
-        // Добавляем класс категории для стилизации
-        const categoryClass = this.getCategoryClass(value);
-        this._category.className = `card__category card__category_${categoryClass}`;
+        const categoryClassName = this.getCategoryClass(value);
+        this._category.className = `card__category ${categoryClassName}`;
     }
-
+    
     private getCategoryClass(category: string): string {
-        // Приводим категорию к нижнему регистру и заменяем пробелы на дефисы
-        return category.toLowerCase().replace(/\s+/g, '-');
+        return categoryClass.get(category);
     }
     
     set price(value: number | null) {
@@ -111,7 +104,6 @@ export class Card extends Component<HTMLElement> {
         }
     }
 
-    // Добавляем метод для управления состоянием карточки
     set selected(value: boolean) {
         this.toggleClass(this._container, 'card_selected', value);
     }

@@ -8,6 +8,8 @@ export class OrderPayment extends Component<HTMLElement> {
     protected _errors: HTMLElement;
     protected _submitButton: HTMLButtonElement;
 
+    private _triedSubmit = false;
+
     constructor(container: HTMLElement, events: IEvents) {
         super(container, events);
 
@@ -29,18 +31,23 @@ export class OrderPayment extends Component<HTMLElement> {
 
         this._address.addEventListener('input', () => {
             events.emit('order.address:change', { address: this._address.value });
+
+            if (this._triedSubmit) {
+                events.emit('order:validation:force');
+            }
         });
 
         this._submitButton.addEventListener('click', () => {
+            this._triedSubmit = true;
             events.emit('order:submit');
         });
     }
 
-    togglePayment(method: 'card' | 'cash'): void {
+    togglePayment(method: 'card' | 'cash' | null): void {
         this.toggleClass(this._buttonCard, 'button_alt-active', method === 'card');
         this.toggleClass(this._buttonCash, 'button_alt-active', method === 'cash');
     }
-
+    
     set address(value: string) {
         this.setValue(this._address, value);
     }
@@ -51,5 +58,9 @@ export class OrderPayment extends Component<HTMLElement> {
 
     set valid(value: boolean) {
         this.setDisabled(this._submitButton, !value);
+    }
+
+    get triedSubmit(): boolean {
+        return this._triedSubmit;
     }
 }

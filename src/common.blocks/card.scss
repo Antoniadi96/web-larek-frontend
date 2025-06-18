@@ -8,14 +8,46 @@
   background-color: $primary;
   color: white;
   padding: $defaultPadding;
+  -webkit-tap-highlight-color: transparent;
+  display: flex;
 
   &_full {
     flex-direction: row;
     background-color: transparent;
+    gap: 2rem;
 
     .card__title {
+      font-size: 60px;
       flex-grow: 0;
     }
+
+    .card__text {
+      font-size: 30px;
+    }
+
+    .card__image {
+      width: 50%;
+      height: auto;
+      margin: 0; 
+      object-fit: contain;
+    }
+
+    .card__row {
+      display: flex;
+      gap: 2rem;               
+      align-items: center;
+      justify-content: flex-start;
+      margin-top: auto;           
+    }
+
+    .card__price {
+      line-height: 1;       
+      margin: 0;            
+      padding: 0;           
+      display: inline-block;
+      
+    }
+  
   }
 
   &_compact {
@@ -30,36 +62,44 @@
   }
 
   &__column {
-    @include mixins.flex(column);
-    align-items: flex-start;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 50%;
   }
 
   &__row {
-    @include mixins.flex(row);
+    display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: $defaultPadding;
+    margin-top: auto;
   }
 
   &__image {
     height: 390px;
     aspect-ratio: 1;
     margin: 3.75rem;
+    object-fit: contain;
   }
   &__title {
     font-size: $titleFontSize;
     font-weight: 500;
     margin: 0;
     flex-grow: 1;
+    text-align: left;
   }
   &__text {
     text-align: left;
     flex-grow: 1;
   }
   &__category {
-    padding: 0.5rem 1.25rem;
     border-radius: 2.5rem;
     margin-bottom: 12px;
     color: $primary;
+    display: inline-block;
+    text-align: left;
+    padding: 0.5rem 25px;
+    align-self: flex-start;
 
     &_soft {
       background-color: $category1;
@@ -77,10 +117,13 @@
       background-color: $category4;
     }
   }
-  &__action {
-
-  }
+  
   &__price {
-
+    margin-top: 0;
+    font-size: 30px;
+    font-weight: 400;
+    color: white;
+    text-align: left;
+    display: block;
   }
 }

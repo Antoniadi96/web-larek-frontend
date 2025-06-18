@@ -5,9 +5,9 @@ export const settings = {
     currency: 'синапсов'
 };
 
-export const categories = new Map([
-    ['софт-скилл', 'card__category_soft'],
-    ['хард-скилл', 'card__category_hard'],
+export const categoryClass = new Map([
+    ['софт-скил', 'card__category_soft'],
+    ['хард-скил', 'card__category_hard'],
     ['другое', 'card__category_other'],
     ['дополнительное', 'card__category_additional'],
     ['кнопка', 'card__category_button'],

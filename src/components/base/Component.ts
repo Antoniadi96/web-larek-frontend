@@ -21,9 +21,16 @@ export abstract class Component<T extends HTMLElement> {
     }
 
     protected setDisabled(element: HTMLElement, state: boolean): void {
-        if (element) {
-            if (state) element.setAttribute('disabled', 'disabled');
-            else element.removeAttribute('disabled');
+        if (!element) {
+            console.warn('⚠ setDisabled called on undefined element');
+            return;
+        }
+        if (state) {
+            element.setAttribute('disabled', 'disabled');
+            element.classList.add('button_disabled');
+        } else {
+            element.removeAttribute('disabled');
+            element.classList.remove('button_disabled');
         }
     }
 

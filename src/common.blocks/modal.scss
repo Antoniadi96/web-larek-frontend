@@ -2,18 +2,21 @@
 @use "mixins";
 
 .modal {
-  @include mixins.sublayer;
-  // height: max-content;
-  position: absolute;
-  display: none;
+  position: fixed; // важно для модалки
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  background-color: rgba(0, 0, 0, 0.5);
+  overflow-y: auto;
+  display: none; // скрыта по умолчанию
   justify-content: center;
-  background-color: $overlayBackground;
-  z-index: 100;
   padding-top: 5vh;
   padding-bottom: 5vh;
   box-sizing: border-box;
 
-  &_active {
+  &.modal_active {
     display: flex;
   }
 
@@ -22,7 +25,6 @@
     @include mixins.flex(column);
     gap: $defaultPadding;
     background-color: $background;
-    // min-height: 90vmin;
     border-radius: 3rem;
     box-sizing: border-box;
     position: relative;
@@ -46,8 +48,8 @@
 
   &__close {
     position: absolute;
-    top: calc(#{$defaultPadding} / 2);
-    right: calc(#{$defaultPadding} / 2);
+    top: 2rem;
+    right: 2rem;
     @include mixins.icon(2rem, 'close');
     @include mixins.link(white, $hover);
   }
@@ -59,7 +61,7 @@
   }
 
   &__message {
-    white-space:nowrap;
+    white-space: nowrap;
     max-width: 60%;
     text-overflow: ellipsis;
     overflow: hidden;
@@ -68,27 +70,5 @@
       color: $error;
     }
   }
-}
-
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: none;
-  z-index: 1000;
-  overflow-y: auto;
-}
-
-.modal_active {
-  display: block;
-}
-
-.modal__container {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
 }
 
