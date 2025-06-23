@@ -35,7 +35,7 @@ export class BasketCard extends Component<HTMLElement> {
     render(item: IProductBasket, index: number): HTMLElement {
         this.setText(this._title, item.title);
         this.setText(this._price, `${item.price} синапсов`);
-        this.setText(this._index, (index + 1).toString());
+        this.setText(this._index, index.toString());
         this.container.dataset.id = item.id;
         return this.container;
     }

@@ -16,6 +16,8 @@ import { Success } from "./components/Success";
 import { API_URL } from "./utils/constants";
 import { IProduct, IProductBasket, FormErrors } from "./types";
 import { ensureElement, cloneTemplate } from "./utils/utils";
+import { MainPage } from "./components/MainPage";
+import { BasketControls } from "./components/BasketControls";
 
 const events = new EventEmitter();
 const api = new AppApi(API_URL);
@@ -37,7 +39,8 @@ const orderPayment = new OrderPayment(cloneTemplate(orderTemplate), events);
 const orderContacts = new OrderContacts(cloneTemplate(contactsTemplate), events);
 const success = new Success(cloneTemplate(successTemplate), events);
 
-const galleryContainer = ensureElement<HTMLElement>('.gallery');
+const page = new MainPage(ensureElement<HTMLElement>('.page__wrapper'), events);
+const controls = new BasketControls(basket.container, events);
 
 api.getProducts()
     .then(products => {
@@ -50,18 +53,12 @@ api.getProducts()
 events.emit('basket:changed', basketData.items);
 
 events.on('products:changed', (products: IProduct[]) => {
-    galleryContainer.innerHTML = '';
-    products.forEach((product) => {
-        const card = new Card(cloneTemplate(cardCatalogTemplate), events, {
-            onClick: () => events.emit('card:select', { id: product.id })
-        });
-        card.id = product.id;
-        card.title = product.title;
-        card.image = product.image;
-        card.category = product.category;
-        card.price = product.price;
-        galleryContainer.appendChild(card.container);
-    });
+	page.catalog = products.map((product) => {
+		const card = new Card(cloneTemplate(cardCatalogTemplate), events, {
+			onClick: () => events.emit('card:select', { id: product.id })
+		});
+		return card.render(product); 
+	});
 });
 
 events.on('card:select', (data: { id: string }) => {
@@ -81,12 +78,12 @@ events.on('basket:changed', (items: IProductBasket[]) => {
 	try {
 		basket.items = items.map((item, index) => {
 			const card = new BasketCard(cloneTemplate(cardBasketTemplate), events);
-			return card.render(item, index);
+			return card.render(item, index + 1);
 		});
 
 		basket.total = basketData.getTotal();
-		basket.counter = basketData.getTotalItems();
-		basket.buttonDisabled = items.length === 0;
+		controls.counter = basketData.getTotalItems();
+		controls.buttonDisabled = items.length === 0;
 
 	} catch (error) {
 		console.error('Error updating basket:', error);
@@ -96,16 +93,8 @@ events.on('basket:changed', (items: IProductBasket[]) => {
 events.on('preview:add', (data: { id: string }) => {
 	const product = productsData.getProduct(data.id);
 	if (product) {
-		basketData.addToBasket(product);
+		basketData.addToBasket(product); // обновление произойдёт через basket:changed
 		modal.close();
-
-		const items = basketData.items || [];
-		basket.items = items.map((item, index) => {
-			const card = new BasketCard(cloneTemplate(cardBasketTemplate), events); 
-			return card.render(item, index);
-		});
-
-		basket.total = basketData.getTotal();
 	}
 });
 
@@ -197,11 +186,11 @@ events.on('success:close', () => {
     modal.close();
 });
 
-const basketButton = ensureElement<HTMLButtonElement>('.header__basket');
-basketButton.addEventListener('click', () => {
-    events.emit('basket:open');
-});
-
 events.on('basket:remove', (data: { id: string }) => {
     basketData.deleteFromBasket(data.id);
+});
+
+const basketIcon = ensureElement<HTMLButtonElement>('.header__basket');
+basketIcon.addEventListener('click', () => {
+  events.emit('basket:open');
 });
