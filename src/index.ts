@@ -93,7 +93,7 @@ events.on('basket:changed', (items: IProductBasket[]) => {
 events.on('preview:add', (data: { id: string }) => {
 	const product = productsData.getProduct(data.id);
 	if (product) {
-		basketData.addToBasket(product); // обновление произойдёт через basket:changed
+		basketData.addToBasket(product);
 		modal.close();
 	}
 });
